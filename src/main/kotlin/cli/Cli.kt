@@ -11,6 +11,7 @@ import org.openqa.selenium.chrome.ChromeDriver
 import org.openqa.selenium.chrome.ChromeOptions
 import java.io.Closeable
 import java.io.File
+import java.time.LocalDate
 import java.time.Year
 import java.util.Scanner
 import kotlin.coroutines.resume
@@ -24,12 +25,14 @@ fun main() {
         println("1. Change year (${workspace.year})")
         println("2. Create new year workspace for ${workspace.year}")
         println("3. Update inputs from AdventOfCode website for ${workspace.year}")
+        println("4. Download today's exercise")
         println("q. Exit")
 
         when (sc.next()) {
             "1" -> sc.getYear()?.let { workspace = Workspace(it) }
             "2" -> workspace.createWorkspace(EmptyGetter())
             "3" -> workspace.updateWorkspace(BrowserGetter(getConnectedBrowser(workspace.year)))
+            "4" -> Workspace(Year.now()).loadOne(LocalDate.now().dayOfMonth, BrowserGetter(getConnectedBrowser(workspace.year)))
             "q" -> System.exit(0)
         }
         println()
@@ -104,6 +107,19 @@ fun Workspace.updateWorkspace(inputSource: InputGetter) {
         execute()
     }
 }
+
+fun Workspace.loadOne(day: Int, inputSource: InputGetter) {
+    inputSource.use { inputGetter ->
+        addResource("${day.normalize()}.txt", override = true) {
+            inputGetter.get(year, day)
+        }
+        addSource("Advent${day.normalize()}.kt") {
+            KOTLIN_TEMPLATE(year, day)
+        }
+        execute()
+    }
+}
+
 
 val KOTLIN_TEMPLATE = { year: Year, day: Int ->
     """@file:Exercise($year, $day)

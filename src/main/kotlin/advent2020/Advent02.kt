@@ -1,37 +1,34 @@
 @file:Exercise(2020, 2)
+
 package advent2020
 
-import common.*
+import common.Exercise
+import common.getLines
 
 // Link for the exercise: https://adventofcode.com/2020/day/2
 fun main() {
-    val lines = "2020/02".getLines()
-    val data = lines.map { line ->
-        line.map {
-            when (it) {
-                '.' -> false
-                else -> true
-            }
-        }.toBooleanArray()
-    }
+    val lines = "2020/02".getLines().map { it.parsePolicyAndPassword() }
 
-    println(data.countTree(3, 1))
-    val res = listOf(
-        data.countTree(1, 1),
-        data.countTree(3, 1),
-        data.countTree(5, 1),
-        data.countTree(7, 1),
-        data.countTree(1, 2)
+    // Part 1
+    println(lines.filter { (policy, password) -> policy.isValid1(password) }.size)
+
+    // Part 2
+    println(lines.filter { (policy, password) -> policy.isValid2(password) }.size)
+}
+
+private fun PasswordPolicy.isValid1(password: String) =
+    password.count { it==letter } in first..second
+
+private fun PasswordPolicy.isValid2(password: String) =
+    (password[first - 1]==letter).xor(password[second - 1]==letter)
+
+private fun String.parsePolicyAndPassword(): Pair<PasswordPolicy, String> {
+    val (range, letter, password) = split(" ")
+    val (first, second) = range.split("-").map { it.toInt() }
+    return Pair(
+        PasswordPolicy(first, second, letter[0]),
+        password.trim()
     )
-    println(res)
-    println(res.fold(1L) { acc, value -> acc * value })
 }
 
-private fun List<BooleanArray>.countTree(stepX: Int, stepY: Int): Int {
-    val width = this[0].size
-    var x = -stepX
-    return (0 until size step stepY).count { y ->
-        x += stepX
-        y < size && this[y][x % width]
-    }
-}
+private class PasswordPolicy(val first: Int, val second: Int, val letter: Char)
