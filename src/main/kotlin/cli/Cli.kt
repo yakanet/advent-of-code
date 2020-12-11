@@ -18,67 +18,90 @@ import kotlin.coroutines.suspendCoroutine
 
 fun main() {
     val sc = Scanner(System.`in`)
-    val year = sc.getYear()
-    val remoteInput = sc.getRemoteInput()
+    var workspace = Workspace(Year.now())
+    while (true) {
+        println("Selected year: ${workspace.year}")
+        println("1. Change year (${workspace.year})")
+        println("2. Create new year workspace for ${workspace.year}")
+        println("3. Update inputs from AdventOfCode website for ${workspace.year}")
+        println("q. Exit")
 
-    val resourceDir = File("in/$year")
-    val sourceDir = File("src/main/kotlin/advent$year")
+        when (sc.next()) {
+            "1" -> sc.getYear()?.let { workspace = Workspace(it) }
+            "2" -> workspace.createWorkspace(EmptyGetter())
+            "3" -> workspace.updateWorkspace(BrowserGetter(getConnectedBrowser(workspace.year)))
+            "q" -> System.exit(0)
+        }
+        println()
+    }
+}
 
-    val inputGetter = if (remoteInput)
-        BrowserGetter(getConnectedBrowser(year))
-    else
-        EmptyGetter()
-    inputGetter.use {
-        val actions = mutableListOf<Preparable>(
-            CreateDirectory(resourceDir),
-            CreateDirectory(sourceDir)
-        )
+
+class Workspace(val year: Year) {
+    private val resourceDir = File("in/$year")
+    private val sourceDir = File("src/main/kotlin/advent$year")
+
+    private val actions = mutableListOf<() -> Unit>()
+
+    init {
+        createDirectory(resourceDir)
+        createDirectory(sourceDir)
+    }
+
+    private fun createDirectory(file: File) {
+        if (!file.exists()) {
+            println(">> Create directory $file")
+            actions += { file.mkdirs() }
+        }
+    }
+
+    fun addSource(name: String, override: Boolean = false, content: () -> String) {
+        addFile(File(sourceDir, name), override, content)
+    }
+
+    fun addResource(name: String, override: Boolean = false, content: () -> String) {
+        addFile(File(resourceDir, name), override, content)
+    }
+
+    private fun addFile(file: File, override: Boolean, content: () -> String) {
+        if (!file.exists()) {
+            println(">> Create file $file")
+            actions += { file.createNewFile() }
+        }
+        if (file.exists() && override) {
+            println(">> Update file $file")
+            actions += { file.writeText(content()) }
+        }
+    }
+
+    fun execute() {
+        actions.forEach { it() }
+        actions.clear()
+    }
+}
+
+fun Workspace.createWorkspace(inputSource: InputGetter) {
+    inputSource.use { inputGetter ->
         (1..25).forEach { day ->
-            actions += WriteFile(File(resourceDir, "${day.normalize()}.txt"), override = true) {
+            addResource("${day.normalize()}.txt", override = true) {
                 inputGetter.get(year, day)
             }
-            actions += WriteFile(File(sourceDir, "Advent${day.normalize()}.kt")) {
+            addSource("Advent${day.normalize()}.kt") {
                 KOTLIN_TEMPLATE(year, day)
             }
         }
-        println("\n\n The program will perform the following actions :")
-        val executions = actions.map { it.prepare() }
-        //if (sc.isAgree())
-            executions.forEach { it() }
+        execute()
     }
 }
 
-
-interface Preparable {
-    fun prepare(): () -> Unit
-}
-
-class CreateDirectory(private val file: File) : Preparable {
-    override fun prepare(): () -> Unit {
-        if (!file.exists()) {
-            println(">> Create directory $file")
-            return { file.mkdirs() }
-        }
-        return noop()
-    }
-}
-
-class WriteFile(private val file: File, val override: Boolean = false, private val content: () -> String) : Preparable {
-    override fun prepare(): () -> Unit {
-        if (file.exists() && override) {
-            println(">> Update file $file")
-            return {
-                file.writeText(content())
+fun Workspace.updateWorkspace(inputSource: InputGetter) {
+    inputSource.use { inputGetter ->
+        (1..25).forEach { day ->
+            addResource("${day.normalize()}.txt", override = true) {
+                inputGetter.get(year, day)
             }
         }
-        if (!file.exists()) {
-            println(">> Create file $file")
-            return {
-                file.createNewFile()
-                file.writeText(content())
-            }
-        }
-        return noop()
+        execute()
     }
 }
 
@@ -97,9 +120,8 @@ fun main() {
 
 private fun Int.normalize() = toString().padStart(2, '0')
 
-
 fun getConnectedBrowser(year: Year): WebDriver {
-    WebDriverManager.chromedriver().setup();
+    WebDriverManager.chromedriver().setup()
     val driver = ChromeDriver(ChromeOptions().apply {
         addArguments("user-data-dir=advent-of-code")
     })
@@ -140,19 +162,12 @@ class BrowserGetter(private val browser: WebDriver) : InputGetter {
     }
 }
 
-fun Scanner.getYear(): Year {
+fun Scanner.getYear(): Year? {
     print("Enter the Advent of code year : ")
-    return Year.of(nextInt())
+    val year = Year.of(nextInt())
+    return if (year.isAfter(Year.of(2014))) year else {
+        System.err.println("Invalid year (must be after 2015)")
+        System.err.flush()
+        null
+    }
 }
-
-private fun Scanner.getRemoteInput(): Boolean {
-    print("Load inputs using browser (y/n) ?")
-    return next()=="y"
-}
-
-private fun Scanner.isAgree(): Boolean {
-    print("Do you agree (y/n) ?")
-    return next()=="y"
-}
-
-private fun noop() = {}
