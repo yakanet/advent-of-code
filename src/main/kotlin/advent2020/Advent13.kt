@@ -5,7 +5,7 @@ package advent2020
 import com.google.common.math.LongMath.gcd
 import common.Puzzle
 import common.getLines
-import kotlin.math.*
+import kotlin.math.abs
 
 // Link for the exercise: https://adventofcode.com/2020/day/13
 fun main() {
