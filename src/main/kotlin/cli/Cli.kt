@@ -26,6 +26,7 @@ fun main() {
         println("2. Create new year workspace for ${workspace.year}")
         println("3. Update inputs from AdventOfCode website for ${workspace.year}")
         println("4. Download today's exercise")
+        println("5. Download one day (${workspace.year})")
         println("q. Exit")
 
         when (sc.next()) {
@@ -33,12 +34,12 @@ fun main() {
             "2" -> workspace.createWorkspace(EmptyGetter())
             "3" -> workspace.updateWorkspace(BrowserGetter(getConnectedBrowser(workspace.year)))
             "4" -> Workspace(Year.now()).loadOne(LocalDate.now().dayOfMonth, BrowserGetter(getConnectedBrowser(workspace.year)))
+            "5" -> workspace.loadOne(sc.getDay(), BrowserGetter(getConnectedBrowser(workspace.year)))
             "q" -> System.exit(0)
         }
         println()
     }
 }
-
 
 class Workspace(val year: Year) {
     private val resourceDir = File("in/$year")
@@ -186,5 +187,18 @@ fun Scanner.getYear(): Year? {
         System.err.println("Invalid year (must be after 2015)")
         System.err.flush()
         null
+    }
+}
+
+
+private fun Scanner.getDay(): Int {
+    print("Enter the day : ")
+    val day = nextInt()
+    return if (day in 1..25) {
+        day
+    } else {
+        System.err.println("Invalid day should be between 1 and 25")
+        System.err.flush()
+        1
     }
 }
