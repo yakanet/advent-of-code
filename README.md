@@ -6,8 +6,9 @@ The CLI will display a menu
 ```
 Selected year: 2020
 1. Change year (2020)
-2. Create new year workspace for 2020
-3. Update inputs from AdventOfCode website for 2020
+2. Download every puzzle for year 2020
+3. Download today's puzzle
+4. Download one day puzzle (2020)
 q. Exit
 ```
 

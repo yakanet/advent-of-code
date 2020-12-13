@@ -24,18 +24,25 @@ fun main() {
     while (true) {
         println("Selected year: ${workspace.year}")
         println("1. Change year (${workspace.year})")
-        println("2. Create new year workspace for ${workspace.year}")
-        println("3. Update inputs from AdventOfCode website for ${workspace.year}")
-        println("4. Download today's exercise")
-        println("5. Download one day (${workspace.year})")
+        println("2. Download every puzzle for year ${workspace.year}")
+        println("3. Download today's puzzle")
+        println("4. Download one day puzzle (${workspace.year})")
         println("q. Exit")
 
         when (sc.next()) {
             "1" -> sc.getYear()?.let { workspace = Workspace(it) }
-            "2" -> workspace.createWorkspace(EmptyGetter())
-            "3" -> workspace.updateWorkspace(BrowserGetter(getConnectedBrowser(workspace.year)))
-            "4" -> Workspace(Year.now()).loadOne(LocalDate.now().dayOfMonth, BrowserGetter(getConnectedBrowser(workspace.year)))
-            "5" -> workspace.loadOne(sc.getDay(), BrowserGetter(getConnectedBrowser(workspace.year)))
+            "2" -> workspace.createWorkspace(
+                1..25,
+                getConnectedBrowser(workspace.year)
+            )
+            "3" -> Workspace(Year.now()).createWorkspace(
+                LocalDate.now().dayOfMonth,
+                getConnectedBrowser(workspace.year)
+            )
+            "4" -> workspace.createWorkspace(
+                sc.getDay(),
+                getConnectedBrowser(workspace.year)
+            )
             "q" -> exitProcess(0)
         }
         println()
@@ -73,8 +80,7 @@ class Workspace(val year: Year) {
             println(">> Create file $file")
             actions += { file.createNewFile() }
             actions += { file.writeText(content()) }
-        }
-        else if (override) {
+        } else if (override) {
             println(">> Update file $file")
             actions += { file.writeText(content()) }
         }
@@ -86,9 +92,12 @@ class Workspace(val year: Year) {
     }
 }
 
-fun Workspace.createWorkspace(inputSource: InputGetter) {
+fun Workspace.createWorkspace(day: Int, inputSource: InputGetter) =
+    createWorkspace(day..day, inputSource)
+
+fun Workspace.createWorkspace(dayRange: IntRange, inputSource: InputGetter) {
     inputSource.use { inputGetter ->
-        (1..25).forEach { day ->
+        dayRange.forEach { day ->
             addResource("${day.normalize()}.txt", override = true) {
                 inputGetter.get(year, day)
             }
@@ -99,30 +108,6 @@ fun Workspace.createWorkspace(inputSource: InputGetter) {
         execute()
     }
 }
-
-fun Workspace.updateWorkspace(inputSource: InputGetter) {
-    inputSource.use { inputGetter ->
-        (1..25).forEach { day ->
-            addResource("${day.normalize()}.txt", override = true) {
-                inputGetter.get(year, day)
-            }
-        }
-        execute()
-    }
-}
-
-fun Workspace.loadOne(day: Int, inputSource: InputGetter) {
-    inputSource.use { inputGetter ->
-        addResource("${day.normalize()}.txt", override = true) {
-            inputGetter.get(year, day)
-        }
-        addSource("Advent${day.normalize()}.kt") {
-            KOTLIN_TEMPLATE(year, day)
-        }
-        execute()
-    }
-}
-
 
 val KOTLIN_TEMPLATE = { year: Year, day: Int ->
     """@file:Puzzle($year, $day)
@@ -139,7 +124,7 @@ fun main() {
 
 private fun Int.normalize() = toString().padStart(2, '0')
 
-fun getConnectedBrowser(year: Year): WebDriver {
+fun getConnectedBrowser(year: Year): InputGetter {
     WebDriverManager.chromedriver().setup()
     val driver = ChromeDriver(ChromeOptions().apply {
         addArguments("user-data-dir=advent-of-code")
@@ -148,26 +133,20 @@ fun getConnectedBrowser(year: Year): WebDriver {
     runBlocking {
         driver.waitUntilUrlEquals("https://adventofcode.com/$year")
     }
-    return driver
+    return BrowserGetter(driver)
 }
 
 suspend fun WebDriver.waitUntilUrlEquals(targetUrl: String) = suspendCoroutine<String> {
     GlobalScope.launch {
         do {
             delay(1000)
-        } while (currentUrl!=targetUrl)
+        } while (currentUrl != targetUrl)
         it.resume(currentUrl)
     }
 }
 
 interface InputGetter : Closeable {
     fun get(year: Year, day: Int): String
-}
-
-class EmptyGetter : InputGetter {
-    override fun get(year: Year, day: Int) = ""
-    override fun close() {
-    }
 }
 
 class BrowserGetter(private val browser: WebDriver) : InputGetter {
@@ -190,7 +169,6 @@ fun Scanner.getYear(): Year? {
         null
     }
 }
-
 
 private fun Scanner.getDay(): Int {
     print("Enter the day : ")
