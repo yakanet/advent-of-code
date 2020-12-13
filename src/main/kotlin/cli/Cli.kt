@@ -13,9 +13,10 @@ import java.io.Closeable
 import java.io.File
 import java.time.LocalDate
 import java.time.Year
-import java.util.Scanner
+import java.util.*
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
+import kotlin.system.exitProcess
 
 fun main() {
     val sc = Scanner(System.`in`)
@@ -35,7 +36,7 @@ fun main() {
             "3" -> workspace.updateWorkspace(BrowserGetter(getConnectedBrowser(workspace.year)))
             "4" -> Workspace(Year.now()).loadOne(LocalDate.now().dayOfMonth, BrowserGetter(getConnectedBrowser(workspace.year)))
             "5" -> workspace.loadOne(sc.getDay(), BrowserGetter(getConnectedBrowser(workspace.year)))
-            "q" -> System.exit(0)
+            "q" -> exitProcess(0)
         }
         println()
     }
