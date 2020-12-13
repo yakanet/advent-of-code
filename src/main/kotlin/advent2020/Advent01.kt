@@ -1,8 +1,8 @@
-@file:Exercise(2020, 1)
+@file:Puzzle(2020, 1)
 
 package advent2020
 
-import common.Exercise
+import common.Puzzle
 import common.getLinesInt
 
 // Link for the exercise: https://adventofcode.com/2020/day/1

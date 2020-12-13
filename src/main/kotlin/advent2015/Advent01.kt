@@ -1,7 +1,7 @@
-@file:Exercise(2015, 1)
+@file:Puzzle(2015, 1)
 package advent2015
 
-import common.Exercise
+import common.Puzzle
 import common.getText
 
 fun main() {

@@ -122,7 +122,7 @@ fun Workspace.loadOne(day: Int, inputSource: InputGetter) {
 
 
 val KOTLIN_TEMPLATE = { year: Year, day: Int ->
-    """@file:Exercise($year, $day)
+    """@file:Puzzle($year, $day)
 package advent$year
 
 import common.*

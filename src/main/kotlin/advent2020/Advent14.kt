@@ -1,4 +1,4 @@
-@file:Exercise(2020, 14)
+@file:Puzzle(2020, 14)
 package advent2020
 
 import common.*
