@@ -70,8 +70,9 @@ class Workspace(val year: Year) {
         if (!file.exists()) {
             println(">> Create file $file")
             actions += { file.createNewFile() }
+            actions += { file.writeText(content()) }
         }
-        if (file.exists() && override) {
+        else if (override) {
             println(">> Update file $file")
             actions += { file.writeText(content()) }
         }
