@@ -5,14 +5,15 @@ package advent2020
 import common.Puzzle
 import common.getLines
 
-private const val MASK_SIZE = 36
+private const val BINARY_SIZE = 36
+private const val MASK_PATTERN = "mask = "
 
 // Link for the exercise: https://adventofcode.com/2020/day/14
 fun main() {
     val instructions = "2020/14".getLines().map { line ->
         when {
-            line.startsWith("mask = ") -> Mask(Floating(line.substring("mask = ".length)))
-            else -> Regex("mem\\[(\\d+)\\] = (\\d+)").matchEntire(line).let {
+            line.startsWith(MASK_PATTERN) -> Mask(Floating(line.replace(MASK_PATTERN, "")))
+            else -> Regex("mem\\[(\\d+)] = (\\d+)").matchEntire(line).let {
                 Memory(
                     Binary(it!!.groups[1]!!.value.toInt()),
                     Binary(it.groups[2]!!.value.toLong())
@@ -54,8 +55,7 @@ private fun List<Instruction>.executeFloating(): Map<Binary, Binary> {
 }
 
 private fun Memory.floatingMask(mask: Mask): List<Memory> {
-    val value = this.value
-    val floatingAddress = Floating(address.rawBinary) + mask.mask
+    val floatingAddress = address.toFloating() + mask.mask
     return floatingAddress.toBinaries().map { Memory(it, value) }
 }
 
@@ -63,10 +63,9 @@ private interface Instruction
 private data class Mask(val mask: Floating) : Instruction
 private data class Memory(val address: Binary, val value: Binary) : Instruction
 
-private data class Binary(val rawBinary: String) {
+private data class Binary(private val rawBinary: String) {
     constructor(value: Int) : this(value.toLong())
-    constructor(value: Long) : this(value.toString(2).padStart(MASK_SIZE, '0'))
-
+    constructor(value: Long) : this(value.toString(2).padStart(BINARY_SIZE, '0'))
 
     fun toLong() = rawBinary.reversed().foldIndexed(0L) { i, acc, c ->
         acc + c.toString().toLong().shl(i)
@@ -76,9 +75,13 @@ private data class Binary(val rawBinary: String) {
         acc + c.toString().toInt().shl(i)
     }
 
+    fun toFloating() = Floating(rawBinary)
+
     override fun toString(): String {
         return toLong().toString()
     }
+
+    fun size() = rawBinary.length
 
     operator fun plus(mask: Floating) = Binary(
         mask.rawBinary.zip(rawBinary) { m, v ->
@@ -105,7 +108,7 @@ private data class Floating(val rawBinary: String) {
     fun toBinaries(): List<Binary> {
         val xCount = Binary("1".repeat(rawBinary.count { it=='X' }))
         return (0..xCount.toInt()).map {
-            val mask = it.toString(2).padStart(xCount.rawBinary.length, '0')
+            val mask = it.toString(2).padStart(xCount.size(), '0')
             var counter = 0
             Binary(rawBinary.map { c ->
                 if (c=='X') mask[counter++] else c
