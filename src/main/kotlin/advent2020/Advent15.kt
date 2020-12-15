@@ -19,13 +19,13 @@ private fun List<Int>.findSpokenNumber(max: Int): Int {
     val turns = mapIndexed { index, value -> value to mutableListOf(index) }.toMap().toMutableMap()
     var last = last()
     (size until max).forEach { turn ->
-        if (!turns.containsKey(last) || turns[last]!!.size <= 1) {
-            last = 0
-            turns[0] = turns.getOrDefault(0, mutableListOf()).apply { add(turn) }
+        last = if (!turns.containsKey(last) || turns[last]!!.size <= 1) {
+            0
         } else {
             val (previousLastIndex, lastIndex) = turns[last]!!.takeLast(2)
-            last = lastIndex - previousLastIndex
-            turns[last] = turns.getOrDefault(last, mutableListOf()).apply { add(turn) }
+            lastIndex - previousLastIndex
+        }.also {
+            turns[it] = turns.computeIfAbsent(it) { mutableListOf() }.apply { add(turn) }
         }
     }
     return last
