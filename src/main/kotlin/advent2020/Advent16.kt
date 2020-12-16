@@ -1,9 +1,95 @@
 @file:Puzzle(2020, 16)
+
 package advent2020
 
-import common.*
+import common.Puzzle
+import common.getText
+import java.util.regex.Pattern.compile
+
+private const val PARSING_REGEX =
+    "(your ticket|nearby tickets):\\s([\\d\\s,]+)|([a-z ]+): (\\d+)-(\\d+) or (\\d+)-(\\d+)|\\s"
 
 // Link for the exercise: https://adventofcode.com/2020/day/16
 fun main() {
-    val input = "2020/16".getText()
+    val (rules, groups) = "2020/16".getText().parseTicketGroup()
+
+    // Part 1
+    rules.validNumbers()
+        .let { valids -> groups.other.flatten().filter { !valids.contains(it) } }
+        .let { invalids -> println(invalids.sum()) }
+
+    // Part 2
+    val validGroup = groups.discardInvalidTickets(rules)
+    validGroup.findFieldPositions(rules)
+        .let { indexedFields ->
+            indexedFields.filter { it.value.name.startsWith("departure") }
+                .map { validGroup.mine[it.key].toLong() }
+                .reduce { acc, i -> acc * i }
+        }
+        .let { println(it) }
 }
+
+private fun String.parseTicketGroup(): Pair<List<Rule>, TicketGroup> {
+    val rules = mutableListOf<Rule>()
+    val tickets = mutableListOf<Ticket>()
+    val regex = compile(PARSING_REGEX).matcher(this)
+    generateSequence { if (regex.find()) regex else null }.forEach { m ->
+        when {
+            m.group(3)!=null -> rules += Rule(
+                m.group(3),
+                listOf(
+                    IntRange(m.group(4).toInt(), m.group(5).toInt()),
+                    IntRange(m.group(6).toInt(), m.group(7).toInt()),
+                )
+            )
+            m.group(1)=="your ticket" -> tickets += m.group(2)!!.trim().split(",").map { it.toInt() }
+            m.group(1)=="nearby tickets" -> m.group(2)!!.lines().forEach { line ->
+                tickets += line.split(",").map { it.toInt() }
+            }
+        }
+    }
+    return Pair(rules.toList(), TicketGroup(tickets.first(), tickets.drop(1)))
+}
+
+private typealias Ticket = List<Int>
+
+private data class Rule(val name: String, val rules: List<IntRange>)
+private data class TicketGroup(val mine: Ticket, val other: List<Ticket>) {
+    fun discardInvalidTickets(rules: List<Rule>): TicketGroup {
+        val valids = rules.validNumbers()
+        val newOther = other.filter { tickets -> !tickets.any { !valids.contains(it) } }
+        return TicketGroup(mine, newOther)
+    }
+
+    fun findFieldPositions(rules: List<Rule>): Map<Int, Rule> {
+        val indexRule = Array(rules.size) { rules.toList() }
+        other.forEach { ticket ->
+            ticket.forEachIndexed { i, value ->
+                indexRule[i] = indexRule[i].removeNotMatching(value)
+            }
+        }
+        return indexRule.decideIndexPosition(rules)
+    }
+
+    private fun Array<List<Rule>>.decideIndexPosition(rules: List<Rule>): Map<Int, Rule> {
+        val result = mutableMapOf<Int, Rule>()
+        var ruleIndexed = rules.map { rule ->
+            rule to mapIndexed { index, list -> IndexedValue(index, list) }
+                .filter { i -> i.value.contains(rule) }
+                .map { it.index }
+        }.sortedBy { it.second.size }.toMap()
+        for (rule in ruleIndexed.keys) {
+            if (ruleIndexed[rule]!!.size!=1) {
+                throw Exception("Couldn't decide the field position")
+            }
+            val index = ruleIndexed[rule]!!.first()
+            result[index] = rule
+            ruleIndexed = ruleIndexed.map { entry -> entry.key to entry.value.filter { it!=index } }.toMap()
+        }
+        return result.toMap()
+    }
+}
+
+private fun List<Rule>.removeNotMatching(value: Int) = filter { it.rules.any { range -> value in range } }
+
+private fun List<Rule>.validNumbers() = flatMap { rule -> rule.rules.flatten() }.toSet()
