@@ -6,15 +6,13 @@ import common.Puzzle
 import common.getText
 import java.util.regex.Pattern.compile
 
-private const val PARSING_REGEX =
-    "(your ticket|nearby tickets):\\s([\\d\\s,]+)|([a-z ]+): (\\d+)-(\\d+) or (\\d+)-(\\d+)"
-private const val REG_RULE_NAME = 3
-private const val REG_RULE_RANGE1_MIN = 4
-private const val REG_RULE_RANGE1_MAX = 5
-private const val REG_RULE_RANGE2_MIN = 6
-private const val REG_RULE_RANGE2_MAX = 7
-private const val REG_TICKET_TITLE = 1
-private const val REG_TICKET_VALUES = 2
+private const val PARSING_REGEX = "([a-z ]+): (\\d+)-(\\d+) or (\\d+)-(\\d+)|\\s|([\\d,]+)"
+private const val REG_RULE_NAME = 1
+private const val REG_RULE_RANGE1_MIN = 2
+private const val REG_RULE_RANGE1_MAX = 3
+private const val REG_RULE_RANGE2_MIN = 4
+private const val REG_RULE_RANGE2_MAX = 5
+private const val REG_TICKET_LINE = 6
 
 
 // Link for the exercise: https://adventofcode.com/2020/day/16
@@ -50,13 +48,9 @@ private fun String.parseTicketGroup(): Pair<List<Rule>, TicketGroup> {
                     IntRange(m.group(REG_RULE_RANGE2_MIN).toInt(), m.group(REG_RULE_RANGE2_MAX).toInt()),
                 )
             )
-            m.group(REG_TICKET_TITLE)=="your ticket" -> tickets += m.group(REG_TICKET_VALUES)!!
-                .trim()
+            m.group(REG_TICKET_LINE)!=null -> tickets += m.group(REG_TICKET_LINE)!!
                 .split(",")
                 .map { it.toInt() }
-            m.group(REG_TICKET_TITLE)=="nearby tickets" -> tickets += m.group(REG_TICKET_VALUES)!!
-                .lines()
-                .map { line -> line.split(",").map { it.toInt() } }
         }
     }
     return Pair(rules.toList(), TicketGroup(tickets.first(), tickets.drop(1)))
