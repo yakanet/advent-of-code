@@ -8,6 +8,14 @@ import java.util.regex.Pattern.compile
 
 private const val PARSING_REGEX =
     "(your ticket|nearby tickets):\\s([\\d\\s,]+)|([a-z ]+): (\\d+)-(\\d+) or (\\d+)-(\\d+)|\\s"
+private const val REG_RULE_NAME = 3
+private const val REG_RULE_RANGE1_MIN = 4
+private const val REG_RULE_RANGE1_MAX = 5
+private const val REG_RULE_RANGE2_MIN = 6
+private const val REG_RULE_RANGE2_MAX = 7
+private const val REG_TICKET_TITLE = 1
+private const val REG_TICKET_VALUES = 2
+
 
 // Link for the exercise: https://adventofcode.com/2020/day/16
 fun main() {
@@ -35,17 +43,20 @@ private fun String.parseTicketGroup(): Pair<List<Rule>, TicketGroup> {
     val regex = compile(PARSING_REGEX).matcher(this)
     generateSequence { if (regex.find()) regex else null }.forEach { m ->
         when {
-            m.group(3)!=null -> rules += Rule(
-                m.group(3),
+            m.group(REG_RULE_NAME)!=null -> rules += Rule(
+                m.group(REG_RULE_NAME),
                 listOf(
-                    IntRange(m.group(4).toInt(), m.group(5).toInt()),
-                    IntRange(m.group(6).toInt(), m.group(7).toInt()),
+                    IntRange(m.group(REG_RULE_RANGE1_MIN).toInt(), m.group(REG_RULE_RANGE1_MAX).toInt()),
+                    IntRange(m.group(REG_RULE_RANGE2_MIN).toInt(), m.group(REG_RULE_RANGE2_MAX).toInt()),
                 )
             )
-            m.group(1)=="your ticket" -> tickets += m.group(2)!!.trim().split(",").map { it.toInt() }
-            m.group(1)=="nearby tickets" -> m.group(2)!!.lines().forEach { line ->
-                tickets += line.split(",").map { it.toInt() }
-            }
+            m.group(REG_TICKET_TITLE)=="your ticket" -> tickets += m.group(REG_TICKET_VALUES)!!
+                .trim()
+                .split(",")
+                .map { it.toInt() }
+            m.group(REG_TICKET_TITLE)=="nearby tickets" -> tickets += m.group(REG_TICKET_VALUES)!!
+                .lines()
+                .map { line -> line.split(",").map { it.toInt() } }
         }
     }
     return Pair(rules.toList(), TicketGroup(tickets.first(), tickets.drop(1)))
