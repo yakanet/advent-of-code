@@ -78,18 +78,18 @@ private data class TicketGroup(val mine: Ticket, val other: List<Ticket>) {
 
     private fun Array<List<Rule>>.decideIndexPosition(rules: List<Rule>): Map<Int, Rule> {
         val result = mutableMapOf<Int, Rule>()
-        var ruleIndexed = rules.map { rule ->
+        var rulePossibleIndex = rules.map { rule ->
             rule to mapIndexed { index, list -> IndexedValue(index, list) }
-                .filter { i -> i.value.contains(rule) }
+                .filter { (_, list) -> list.contains(rule) }
                 .map { it.index }
         }.sortedBy { it.second.size }.toMap()
-        for (rule in ruleIndexed.keys) {
-            if (ruleIndexed[rule]!!.size!=1) {
+        for (rule in rulePossibleIndex.keys) {
+            if (rulePossibleIndex[rule]!!.size!=1) {
                 throw Exception("Couldn't decide the field position")
             }
-            val index = ruleIndexed[rule]!!.first()
+            val index = rulePossibleIndex[rule]!!.first()
             result[index] = rule
-            ruleIndexed = ruleIndexed.map { entry -> entry.key to entry.value.filter { it!=index } }.toMap()
+            rulePossibleIndex = rulePossibleIndex.map { entry -> entry.key to entry.value.filter { it!=index } }.toMap()
         }
         return result.toMap()
     }
