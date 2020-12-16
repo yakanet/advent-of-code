@@ -17,25 +17,23 @@ private const val REG_TICKET_LINE = 6
 
 // Link for the exercise: https://adventofcode.com/2020/day/16
 fun main() {
-    val (rules, groups) = "2020/16".getText().parseTicketGroup()
+    val (rules, tickets) = "2020/16".getText().parseRulesAndTickets()
 
     // Part 1
     rules.validNumbers()
-        .let { valids -> groups.other.flatten().filter { !valids.contains(it) } }
+        .let { valids -> tickets.other.flatten().filter { !valids.contains(it) } }
         .let { invalids -> println(invalids.sum()) }
 
     // Part 2
-    val validGroup = groups.discardInvalidTickets(rules)
-    validGroup.findFieldPositions(rules)
-        .let { indexedFields ->
-            indexedFields.filter { it.value.name.startsWith("departure") }
-                .map { validGroup.mine[it.key].toLong() }
-                .reduce { acc, i -> acc * i }
-        }
-        .let { println(it) }
+    val validGroup = tickets.discardInvalidTickets(rules)
+    validGroup.findFieldPositions(rules).let {
+        it.filter { (_, value) -> value.name.startsWith("departure") }
+            .map { (index, _) -> validGroup.mine[index].toLong() }
+            .reduce { acc, i -> acc * i }
+    }.let { println(it) }
 }
 
-private fun String.parseTicketGroup(): Pair<List<Rule>, TicketGroup> {
+private fun String.parseRulesAndTickets(): Pair<List<Rule>, TicketGroup> {
     val rules = mutableListOf<Rule>()
     val tickets = mutableListOf<Ticket>()
     val regex = compile(PARSING_REGEX).matcher(this)
