@@ -48,7 +48,7 @@ private fun String.parseTicketGroup(): Pair<List<Rule>, TicketGroup> {
                     IntRange(m.group(REG_RULE_RANGE2_MIN).toInt(), m.group(REG_RULE_RANGE2_MAX).toInt()),
                 )
             )
-            m.group(REG_TICKET_LINE)!=null -> tickets += m.group(REG_TICKET_LINE)!!
+            m.group(REG_TICKET_LINE)!=null -> tickets += m.group(REG_TICKET_LINE)
                 .split(",")
                 .map { it.toInt() }
         }
