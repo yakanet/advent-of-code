@@ -6,7 +6,7 @@ import common.Puzzle
 import common.getText
 import java.util.regex.Pattern.compile
 
-private const val PARSING_REGEX = "([a-z ]+): (\\d+)-(\\d+) or (\\d+)-(\\d+)|\\s|([\\d,]+)"
+private const val PARSING_REGEX = "([a-z ]+): (\\d+)-(\\d+) or (\\d+)-(\\d+)|([\\d,]+)"
 private const val REG_RULE_NAME = 1
 private const val REG_RULE_RANGE1_MIN = 2
 private const val REG_RULE_RANGE1_MAX = 3
