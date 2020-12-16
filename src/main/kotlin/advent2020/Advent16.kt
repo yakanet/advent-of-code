@@ -7,7 +7,7 @@ import common.getText
 import java.util.regex.Pattern.compile
 
 private const val PARSING_REGEX =
-    "(your ticket|nearby tickets):\\s([\\d\\s,]+)|([a-z ]+): (\\d+)-(\\d+) or (\\d+)-(\\d+)|\\s"
+    "(your ticket|nearby tickets):\\s([\\d\\s,]+)|([a-z ]+): (\\d+)-(\\d+) or (\\d+)-(\\d+)"
 private const val REG_RULE_NAME = 3
 private const val REG_RULE_RANGE1_MIN = 4
 private const val REG_RULE_RANGE1_MAX = 5
