@@ -4,7 +4,7 @@ package advent2020
 
 import common.Puzzle
 import common.getLines
-import org.apache.commons.lang3.math.NumberUtils.isDigits
+import org.apache.commons.lang.math.NumberUtils.isDigits
 import java.util.LinkedList
 
 // Link for the exercise: https://adventofcode.com/2020/day/18

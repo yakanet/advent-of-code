@@ -126,9 +126,7 @@ private fun Int.normalize() = toString().padStart(2, '0')
 
 fun getConnectedBrowser(year: Year): InputGetter {
     WebDriverManager.chromedriver().setup()
-    val driver = ChromeDriver(ChromeOptions().apply {
-        addArguments("user-data-dir=advent-of-code")
-    })
+    val driver = ChromeDriver()
     driver.get("https://adventofcode.com/$year/auth/login")
     runBlocking {
         driver.waitUntilUrlEquals("https://adventofcode.com/$year")

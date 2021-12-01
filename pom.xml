@@ -13,7 +13,7 @@
         <maven.compiler.release>11</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <junit.version>5.7.0</junit.version>
-        <kotlin.version>1.4.10</kotlin.version>
+        <kotlin.version>1.6.0</kotlin.version>
     </properties>
 
     <dependencies>
@@ -32,23 +32,23 @@
 
         <dependency>
             <groupId>org.jetbrains.kotlinx</groupId>
-            <artifactId>kotlinx-coroutines-core</artifactId>
-            <version>1.4.2</version>
+            <artifactId>kotlinx-coroutines-core-jvm</artifactId>
+            <version>1.5.2</version>
         </dependency>
         <dependency>
             <groupId>org.seleniumhq.selenium</groupId>
             <artifactId>selenium-java</artifactId>
-            <version>3.141.59</version>
+            <version>4.0.0</version>
         </dependency>
         <dependency>
             <groupId>io.github.bonigarcia</groupId>
             <artifactId>webdrivermanager</artifactId>
-            <version>3.7.1</version>
+            <version>5.0.2</version>
         </dependency>
         <dependency>
             <groupId>org.jetbrains.kotlin</groupId>
             <artifactId>kotlin-script-runtime</artifactId>
-            <version>RELEASE</version>
+            <version>${kotlin.version}</version>
             <scope>compile</scope>
         </dependency>
     </dependencies>
@@ -141,11 +141,4 @@
             </plugin>
         </plugins>
     </build>
-
-    <repositories>
-        <repository>
-            <id>com.teamdev</id>
-            <url>http://maven.teamdev.com/repository/products</url>
-        </repository>
-    </repositories>
 </project>

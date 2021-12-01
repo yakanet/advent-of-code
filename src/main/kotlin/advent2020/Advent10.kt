@@ -18,12 +18,12 @@ fun main() {
 
     // Part 2
     val paths = lines.mapPossiblePaths()
-    print(paths[lines.max()!!]!!)
+    print(paths[lines.maxOrNull()!!]!!)
 }
 
 private fun List<Int>.chainAdaptersByDiff(): Map<Int, Int> {
     val count = mutableMapOf(1 to 1, 2 to 0, 3 to 1)
-    var current = min()!!
+    var current = minOrNull()!!
     repeat(size) {
         (1..3).forEach {
             if (contains(current + it)) {
