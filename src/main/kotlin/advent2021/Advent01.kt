@@ -12,7 +12,7 @@ fun main() {
     solution2(input) // 1653
 }
 
-fun solution1(input: List<Int>) {
+private fun solution1(input: List<Int>) {
     var increase = 0
     input.reduce { acc, it ->
         if (it > acc) {
@@ -24,7 +24,7 @@ fun solution1(input: List<Int>) {
 }
 
 
-fun solution2(input: List<Int>) {
+private fun solution2(input: List<Int>) {
     val list = input.windowed(3).map { it.sum() }
     solution1(list)
 }
