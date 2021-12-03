@@ -13,16 +13,12 @@ fun main() {
 }
 
 private fun solution1(input: List<String>) {
-    val max = input[0].length
-    val epsilon = StringBuilder()
-    val gamma = StringBuilder()
-    repeat(max) { at ->
+    val epsilon = (0 until input[0].length).map { at ->
         val (zeros, ones) = input.partition { it[at] == '0' }
-        val (least, most) = if (zeros.size > ones.size) Pair('1', '0') else Pair('0', '1')
-        epsilon.append(least)
-        gamma.append(most)
-    }
-    println(epsilon.toString().toInt(2) * gamma.toString().toInt(2))
+        if (zeros.size > ones.size) '1' else '0'
+    }.joinToString("")
+    val gamma = epsilon.map { '1' - it.digitToInt() }.joinToString("")
+    println(epsilon.toInt(2) * gamma.toInt(2))
 }
 
 private fun solution2(input: List<String>) {
@@ -31,7 +27,10 @@ private fun solution2(input: List<String>) {
     println(oxygen.toInt(2) * co2.toInt(2))
 }
 
-private fun findByPredicate(input: List<String>, predicate: (zeros: List<String>, ones: List<String>) -> Boolean): String {
+private fun findByPredicate(
+    input: List<String>,
+    predicate: (zeros: List<String>, ones: List<String>) -> Boolean
+): String {
     var current = input
     var at = 0
     while (current.size != 1) {
