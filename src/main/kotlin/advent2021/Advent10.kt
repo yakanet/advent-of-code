@@ -4,7 +4,6 @@ package advent2021
 
 import common.Puzzle
 import common.getLines
-import java.util.*
 
 private sealed interface ParseError
 private class Corrupted(val expected: Char, val found: Char, val position: Int, val lineNumber: Int) : ParseError
@@ -12,7 +11,7 @@ private class Incomplete(val missings: List<Char>, val lineNumber: Int) : ParseE
 
 private class Parser(private val lineNumber: Int) {
     fun parse(line: String): ParseError {
-        val stack = LinkedList<Char>()
+        val stack = ArrayDeque<Char>()
         line.forEachIndexed { i, c ->
             if (c in OPENING) {
                 stack.addLast(OPENING[c]!!)
