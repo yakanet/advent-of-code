@@ -60,9 +60,7 @@ private fun solution2(cave: Cave) {
         }
         return pathCount
     }
-
     println(cave.countPaths(cave.startNode, cave.endNode))
-
 }
 
 
