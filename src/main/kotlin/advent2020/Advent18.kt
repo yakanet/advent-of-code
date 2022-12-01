@@ -4,21 +4,20 @@ package advent2020
 
 import common.Puzzle
 import common.getLines
-import org.apache.commons.lang.math.NumberUtils.isDigits
-import java.util.LinkedList
+import java.util.*
 
 // Link for the exercise: https://adventofcode.com/2020/day/18
 fun main() {
     val input = "2020/18".getLines()
     // Part 1
-    println(input.map { line ->
+    println(input.sumOf { line ->
         line.tokenize().evaluate()
-    }.sum())
+    })
 
     // Part 2
-    println(input.map { line ->
+    println(input.sumOf { line ->
         line.tokenize().addAdditionPrecedence().evaluate()
-    }.sum())
+    })
 }
 
 private fun List<Token>.evaluate(): Long {
@@ -26,15 +25,16 @@ private fun List<Token>.evaluate(): Long {
     var operator: Operator? = null
     for (t in this) {
         when (t) {
-            is Value -> if (operator!=null) {
+            is Value -> if (operator != null) {
                 left = operator.execute(left, t.value)
                 operator = null
             } else {
                 left = t.value
             }
+
             is Operation -> operator = t.operator
-            is Parenthesis -> if (operator!=null) {
-                left = operator.execute(left, t.expressions.evaluate());
+            is Parenthesis -> if (operator != null) {
+                left = operator.execute(left, t.expressions.evaluate())
                 operator = null
             } else {
                 left = t.expressions.evaluate()
@@ -50,17 +50,18 @@ private fun List<Token>.addAdditionPrecedence(): List<Token> {
         when (t) {
             is Value -> {
                 val last = stack.lastOrNull()
-                if (last is Operation && last.operator==Operator.ADDITION) {
+                if (last is Operation && last.operator == Operator.ADDITION) {
                     val o = stack.removeLast()
                     stack.add(Parenthesis(listOf(stack.removeLast(), o, t)))
                 } else {
                     stack.add(t)
                 }
             }
+
             is Operation -> stack.add(t)
             is Parenthesis -> {
                 val last = stack.lastOrNull()
-                if (last is Operation && last.operator==Operator.ADDITION) {
+                if (last is Operation && last.operator == Operator.ADDITION) {
                     val o = stack.removeLast()
                     stack.add(
                         Parenthesis(
@@ -103,13 +104,18 @@ fun String.tokenize(): List<Token> {
     regex.findAll(this).map { it.value }.forEach {
         when {
             isDigits(it) -> stack.peek().add(Value(it.toLong()))
-            it=="+" -> stack.peek().add(Operation(Operator.ADDITION))
-            it=="*" -> stack.peek().add(Operation(Operator.MULTIPLICATION))
-            it=="(" -> stack.push(mutableListOf())
-            it==")" -> stack.pop().let { s -> stack.peek().add(Parenthesis(s)) }
+            it == "+" -> stack.peek().add(Operation(Operator.ADDITION))
+            it == "*" -> stack.peek().add(Operation(Operator.MULTIPLICATION))
+            it == "(" -> stack.push(mutableListOf())
+            it == ")" -> stack.pop().let { s -> stack.peek().add(Parenthesis(s)) }
         }
     }
     return stack.pop()
+}
+
+private fun isDigits(value: String): Boolean {
+    val (_, notDigits) = value.partition { it.isDigit() }
+    return notDigits.isEmpty()
 }
 
 enum class Operator(val execute: (left: Long, right: Long) -> Long) {

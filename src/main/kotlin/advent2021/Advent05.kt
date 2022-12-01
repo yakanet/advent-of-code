@@ -52,16 +52,6 @@ private fun Point.rangeTo2D(p: Point): List<Point> {
     }
 }
 
-private fun Map<Point, Int>.print() {
-    val maxX = keys.maxOf { it.x }
-    val maxY = keys.maxOf { it.y }
-    (0..maxY).forEach { y ->
-        println((0..maxX).joinToString("") { x ->
-            getOrDefault(Point(x, y), ".").toString()
-        })
-    }
-}
-
 private fun String.toRange() = Regex("(\\d+),(\\d+) -> (\\d+),(\\d+)")
     .matchEntire(this)!!
     .groupValues

@@ -1,21 +1,15 @@
 package cli
 
-import io.github.bonigarcia.wdm.WebDriverManager
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
-import org.jsoup.Jsoup
-import org.openqa.selenium.WebDriver
-import org.openqa.selenium.chrome.ChromeDriver
-import org.openqa.selenium.chrome.ChromeOptions
+import com.microsoft.playwright.BrowserContext
+import com.microsoft.playwright.BrowserType.LaunchPersistentContextOptions
+import com.microsoft.playwright.Page
+import com.microsoft.playwright.Playwright
 import java.io.Closeable
 import java.io.File
+import java.nio.file.Path
 import java.time.LocalDate
 import java.time.Year
 import java.util.*
-import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
 import kotlin.system.exitProcess
 
 fun main() {
@@ -124,37 +118,61 @@ fun main() {
 
 private fun Int.normalize() = toString().padStart(2, '0')
 
-fun getConnectedBrowser(year: Year): InputGetter {
-    WebDriverManager.chromedriver().setup()
-    val driver = ChromeDriver()
-    driver.get("https://adventofcode.com/$year/auth/login")
-    runBlocking {
-        driver.waitUntilUrlEquals("https://adventofcode.com/$year")
+object SimpleBrowser : Closeable {
+    private val playwright = Playwright.create()!!
+    private var context: BrowserContext? = null
+    private var page: Page? = null
+    private val path = Path.of(".")
+
+    private fun getBrowser(): BrowserContext {
+        if (context == null) {
+            val option = LaunchPersistentContextOptions()
+                .setHeadless(false)
+            context = playwright.chromium().launchPersistentContext(path, option)
+        }
+        return context!!
     }
-    return BrowserGetter(driver)
+
+    fun getPage(): Page {
+        page = getBrowser().newPage()
+        return page!!
+    }
+
+    override fun close() {
+        if (context != null) {
+            context!!.close()
+        }
+        playwright.close()
+    }
+
+    fun store() {
+        getBrowser().storageState()
+    }
 }
 
-suspend fun WebDriver.waitUntilUrlEquals(targetUrl: String) = suspendCoroutine<String> {
-    GlobalScope.launch {
-        do {
-            delay(1000)
-        } while (currentUrl != targetUrl)
-        it.resume(currentUrl)
+fun getConnectedBrowser(year: Year): InputGetter {
+    val page = SimpleBrowser.getPage()
+    page.navigate("https://adventofcode.com/$year/day/1/input")
+    if (page.content().contains("Please log in")) {
+        page.navigate("https://adventofcode.com/$year/auth/login")
+        page.waitForURL { url -> url == "https://adventofcode.com/$year" || url == "https://adventofcode.com/$year/day/1/input" }
+        SimpleBrowser.store()
     }
+    return BrowserGetter(page)
 }
 
 interface InputGetter : Closeable {
     fun get(year: Year, day: Int): String
 }
 
-class BrowserGetter(private val browser: WebDriver) : InputGetter {
+class BrowserGetter(private val page: Page) : InputGetter {
     override fun get(year: Year, day: Int): String {
-        browser.get("https://adventofcode.com/$year/day/$day/input")
-        return Jsoup.parse(browser.pageSource).text()
+        page.navigate("https://adventofcode.com/$year/day/$day/input")
+        return page.content()
     }
 
     override fun close() {
-        browser.close()
+        page.close()
     }
 }
 
