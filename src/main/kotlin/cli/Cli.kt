@@ -29,14 +29,17 @@ fun main() {
                 1..25,
                 getConnectedBrowser(workspace.year)
             )
+
             "3" -> Workspace(Year.now()).createWorkspace(
                 LocalDate.now().dayOfMonth,
                 getConnectedBrowser(workspace.year)
             )
+
             "4" -> workspace.createWorkspace(
                 sc.getDay(),
                 getConnectedBrowser(workspace.year)
             )
+
             "q" -> exitProcess(0)
         }
         println()
@@ -168,7 +171,7 @@ interface InputGetter : Closeable {
 class BrowserGetter(private val page: Page) : InputGetter {
     override fun get(year: Year, day: Int): String {
         page.navigate("https://adventofcode.com/$year/day/$day/input")
-        return page.content()
+        return page.innerText("pre")
     }
 
     override fun close() {
