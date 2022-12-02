@@ -5,10 +5,10 @@ package advent2022
 import common.Puzzle
 import common.getLines
 
-private enum class Move(val opponentLetter: String, val playerLetter: String) {
-    ROCK("A", "X"),
-    PAPER("B", "Y"),
-    SCISSOR("C", "Z");
+private enum class Move(val opponentLetter: String, val playerLetter: String, val point: Int) {
+    ROCK("A", "X", 1),
+    PAPER("B", "Y", 2),
+    SCISSOR("C", "Z", 3);
 }
 
 private enum class Points(val point: Int) {
@@ -16,12 +16,6 @@ private enum class Points(val point: Int) {
     DRAW(3),
     WIN(6);
 }
-
-private val movePoints = mapOf(
-    Move.ROCK to 1,
-    Move.PAPER to 2,
-    Move.SCISSOR to 3,
-)
 
 private val winAgainst = mapOf(
     Move.ROCK to Move.PAPER,
@@ -56,7 +50,7 @@ private fun part1(lines: List<String>) {
     var points = 0
     for (move in lines) {
         val (opponent, bestMove) = move.split(" ").map { it.toMove() }
-        points += movePoints[bestMove]!! + play(opponent, bestMove).point
+        points += bestMove.point + play(opponent, bestMove).point
     }
     println(points)
 }
@@ -68,7 +62,7 @@ private fun part2(lines: List<String>) {
         val turnShouldEnd = part2Rule[bestMove]
         for (playerMove in Move.values()) {
             if (play(opponent, playerMove) == turnShouldEnd) {
-                points += movePoints[playerMove]!! + play(opponent, playerMove).point
+                points += playerMove.point + play(opponent, playerMove).point
             }
         }
     }
