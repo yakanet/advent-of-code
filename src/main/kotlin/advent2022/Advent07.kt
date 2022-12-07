@@ -15,12 +15,12 @@ fun main() {
     val root = Folder("/").parse(lines)
 
     // Part 1
-    println(root.filterBy { it.getSize() <= 100_000 }.sumOf { it.getSize() })
+    println(root.filterBy { it.size <= 100_000 }.sumOf { it.size })
 
     // Part 2
-    println(root.getSize().let { rootSize ->
-        root.flatten().sortedBy { it.getSize() }
-            .first { DISK_SIZE - rootSize + it.getSize() > UPDATE_SIZE }.getSize()
+    println(root.size.let { rootSize ->
+        root.flatten().sortedBy { it.size }
+            .first { DISK_SIZE - rootSize + it.size > UPDATE_SIZE }.size
     })
 }
 
@@ -77,16 +77,15 @@ private fun String.toFile(parent: Folder?): File {
     }
 }
 
-private open class File(val name: String, private val size: Int) {
-    open fun getSize() = size
+private open class File(val name: String, open val size: Int) {
 }
 
 private class Folder(name: String, val parent: Folder? = null) : File(name, 0) {
 
     val files = mutableListOf<File>()
 
-    override fun getSize(): Int {
-        return files.sumOf { it.getSize() }
+    override val size: Int by lazy {
+        files.sumOf { it.size }
     }
 
     operator fun contains(folder: Folder) = files.filterIsInstance(Folder::class.java)
@@ -102,7 +101,7 @@ private class Folder(name: String, val parent: Folder? = null) : File(name, 0) {
 
 private fun printTree(file: File, level: Int = 0) {
     val type = if (file is Folder) "dir" else "file"
-    println("  ".repeat(level) + " - ${file.name} ($type, ${file.getSize()})")
+    println("  ".repeat(level) + " - ${file.name} ($type, ${file.size})")
     if (file is Folder) {
         for (f in file.files) {
             printTree(f, level + 1)
