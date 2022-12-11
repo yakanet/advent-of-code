@@ -72,7 +72,7 @@ private fun part2(forest: Forest) {
             val top = visibleUntil(current.height, IntRange(forest.first, y - 1).reversed()) { forest.at(x, it) }
             val bottom = visibleUntil(current.height, IntRange(y + 1, forest.last)) { forest.at(x, it) }
             val weight = left.size * right.size * top.size * bottom.size
-            max = Math.max(max, weight)
+            max = max.coerceAtLeast(weight)
         }
     }
     println(max)
